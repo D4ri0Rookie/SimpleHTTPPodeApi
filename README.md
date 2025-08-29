@@ -64,4 +64,62 @@ Get-Job -Name SimpleHTTPPodeApi    # Check status
 Receive-Job -Id $job.Id           # View output
 Stop-Job -Id $job.Id              # Stop server
 Remove-Job -Id $job.Id            # Clean up
----
+```
+
+### 📡 API Endpoints
+
+### Core Endpoints
+
+| Method | Endpoint | Response | Description |
+|--------|----------|----------|-------------|
+| `GET` | `/` | HTML | Server status page with available endpoints |
+| `GET` | `/hello` | JSON | Simple "Hello World" test endpoint |
+| `GET` | `/health` | JSON | Health check endpoint for monitoring |
+| `*` | `/*` | 404 | All other requests return standard HTTP 404 |
+
+
+## 📝 Logging
+
+The server automatically creates comprehensive logs in the `logs/` directory:
+
+### Log Files
+
+| File Pattern | Content | Format |
+|--------------|---------|---------|
+| `server-YYYY-MM-DD.log` | Server events (startup, shutdown, errors) | Plain text |
+| `requests-YYYY-MM-DD.log` | HTTP requests and responses | Plain text |
+| `requests-structured-YYYY-MM-DD.log` | HTTP requests with metadata | JSON |
+
+### Log Rotation
+
+- **Daily rotation**: New log files created each day
+- **Automatic cleanup**: No manual intervention required
+- **Structured data**: JSON logs for automated analysis
+
+### Default Settings
+
+- **Host**: `localhost` (hardcoded for security)
+- **Port**: `8080` (hardcoded)
+- **Protocol**: `HTTP` only
+- **Logging**: Enabled with daily rotation
+- **Security Headers**: Basic protection enabled
+- **Configuration files**: None (zero-config design)
+
+### Customization
+
+The server uses hardcoded values for maximum portability and security. To modify settings, edit `server.ps1`:
+
+## 🛡️ Security
+
+### Built-in Protection
+
+- **Standard HTTP responses**: Proper 404 for unknown routes
+- **Security headers**: X-Frame-Options, X-Content-Type-Options, etc.
+- **Request logging**: Full audit trail of all requests
+- **No authentication**: Designed for internal/trusted networks
+
+## 🙏 Acknowledgments
+
+This project is built on top of the excellent [Pode framework](https://github.com/Badgerati/Pode) by [@Badgerati](https://github.com/Badgerati). Pode provides the robust HTTP server foundation that makes this simple API server possible.
+
+Special thanks to the Pode community for creating such a powerful and easy-to-use PowerShell web framework.

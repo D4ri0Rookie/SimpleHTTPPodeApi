@@ -123,3 +123,6 @@ The server uses hardcoded values for maximum portability and security. To modify
 This project is built on top of the excellent [Pode framework](https://github.com/Badgerati/Pode) by [@Badgerati](https://github.com/Badgerati). Pode provides the robust HTTP server foundation that makes this simple API server possible.
 
 Special thanks to the Pode community for creating such a powerful and easy-to-use PowerShell web framework.
+
+## Thanks
+Big thanks to everyone who helped, and a special shoutout to AI for the tips and help with the documentation! 🚀

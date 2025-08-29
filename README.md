@@ -35,7 +35,7 @@ SimpleHTTPPodeApi/
     ├── requests-YYYY-MM-DD.log
     └── requests-structured-YYYY-MM-DD.log
 ```
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/ca0ae90c-1057-4ce7-bae3-aeaa69ff9934" />
+<img width="1935" height="1118" alt="image" src="https://github.com/user-attachments/assets/b23a6198-f6f2-4964-8704-4454a03e105c" />
 
 ## 🚀 Quick Start
 

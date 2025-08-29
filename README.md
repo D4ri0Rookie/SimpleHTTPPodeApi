@@ -144,8 +144,6 @@ The server automatically creates comprehensive logs in the `logs/` directory:
 
 ### Customization
 
-### Customization
-
 The server uses hardcoded values for maximum portability and security. To modify settings, edit `server.ps1`:
 
 ```powershell

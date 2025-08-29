@@ -73,8 +73,8 @@ Remove-Job -Id $job.Id            # Clean up
 | Method | Endpoint | Response | Description |
 |--------|----------|----------|-------------|
 | `GET` | `/` | HTML | Server status page with available endpoints |
-| `GET` | `/hello` | JSON | Simple "Hello World" test endpoint |
-| `GET` | `/health` | JSON | Health check endpoint for monitoring |
+| `GET` | `/hello` | HTML | Simple "Hello World" test endpoint |
+| `GET` | `/health` | HTML | Health check endpoint for monitoring |
 | `*` | `/*` | 404 | All other requests return standard HTTP 404 |
 
 

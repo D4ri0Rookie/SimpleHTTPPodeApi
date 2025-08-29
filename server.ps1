@@ -7,7 +7,7 @@
     Completely self-contained and portable across different systems.
 
 .NOTES
-    Version: 1.0.0
+    Version: 1.1.0
     Date: 2025-08-28
     Requirements: PowerShell 5.1+, Pode module
     Port: 8080 (HTTP alternative standard)
@@ -64,9 +64,9 @@ Write-ServerLog "🌐 Starting SimpleHTTPPodeApi..." "Info"
 # HTTP server startup without preliminary validations (unlike HTTPS)
 # No certificate checks or complex configurations needed
 try {
-    # Start-PodeServer starts HTTP server with default configuration
-    # Uses single thread (different from HTTPS which uses 10) for simplicity
-    Start-PodeServer -ScriptBlock {
+    # Start-PodeServer starts HTTP server with 5 concurrent threads for better performance
+    # Balanced between performance and resource usage
+    Start-PodeServer -Threads 5 -ScriptBlock {
         
         # =============================================================================
         # INTERNAL PODE SERVER FUNCTIONS
@@ -85,7 +85,7 @@ try {
             # Console output for immediate debug
             Write-Host $logEntry
             
-            # Save to log files (same logic as external function)
+            # Save to log files (same logic as external function with size control)
             $currentPath = $PSScriptRoot
             $logDir = Join-Path $currentPath "logs"
             if (-not (Test-Path $logDir)) {
@@ -141,6 +141,55 @@ try {
                 $structuredLogFile = Join-Path $logDir "requests-structured-$(Get-Date -Format 'yyyy-MM-dd').log"
                 $jsonEntry = $requestInfo | ConvertTo-Json -Compress
                 Add-Content -Path $structuredLogFile -Value $jsonEntry -ErrorAction SilentlyContinue
+            }
+        }
+        
+        # =============================================================================
+        # RATE LIMITING MIDDLEWARE - Protects against spam and DoS attacks
+        # =============================================================================
+        
+        # Rate limiting: max 60 requests per minute per IP address
+        # Simple in-memory rate limiting for basic protection
+        Add-PodeMiddleware -Name 'RateLimiting' -ScriptBlock {
+            $clientIP = $WebEvent.Request.RemoteEndPoint.Address.ToString()
+            $currentMinute = Get-Date -Format "yyyy-MM-dd HH:mm"
+            $rateLimitKey = "$clientIP-$currentMinute"
+            
+            # Initialize rate limit storage if not exists
+            if (-not $WebEvent.Data.ContainsKey('RateLimits')) {
+                $WebEvent.Data.RateLimits = @{}
+            }
+            
+            # Get current request count for this IP in current minute
+            $requestCount = $WebEvent.Data.RateLimits[$rateLimitKey]
+            if (-not $requestCount) {
+                $requestCount = 0
+            }
+            
+            # Check if rate limit exceeded
+            if ($requestCount -ge 60) {
+                Write-Host "🚫 Rate limit exceeded for $clientIP ($requestCount requests/minute)" -ForegroundColor Red
+                
+                # Return 429 Too Many Requests
+                Set-PodeResponseStatus -Code 429 -Description 'Too Many Requests'
+                Write-PodeJsonResponse -Value @{
+                    error = "Rate limit exceeded"
+                    message = "Maximum 60 requests per minute allowed"
+                    retryAfter = 60
+                } -StatusCode 429
+                return $false  # Stop processing this request
+            }
+            
+            # Increment request count
+            $WebEvent.Data.RateLimits[$rateLimitKey] = $requestCount + 1
+            
+            # Clean old rate limit entries (keep only current and previous minute)
+            $previousMinute = (Get-Date).AddMinutes(-1).ToString("yyyy-MM-dd HH:mm")
+            $keysToKeep = @("$clientIP-$currentMinute", "$clientIP-$previousMinute")
+            
+            $keysToRemove = $WebEvent.Data.RateLimits.Keys | Where-Object { $_ -notlike "$clientIP-*" -or $_ -notin $keysToKeep }
+            foreach ($key in $keysToRemove) {
+                $WebEvent.Data.RateLimits.Remove($key)
             }
         }
         
@@ -251,7 +300,29 @@ try {
         Write-InternalLog "   + Routes from files in routes/ folder" "Info"
         Write-InternalLog "   All other URLs return 404" "Info"
         Write-InternalLog "🛡️ OWASP security headers enabled" "Info"
+        Write-InternalLog "🚫 Rate limiting enabled (60 req/min per IP)" "Info"
         Write-InternalLog "🚀 Server ready on http://localhost:8080" "Info"
+        
+        # =============================================================================
+        # PERIODIC MEMORY CLEANUP - Prevents memory leaks in long-running server
+        # =============================================================================
+        
+        # Schedule periodic memory cleanup every 30 minutes to prevent memory leaks
+        # This helps maintain stable memory usage during long-running operations
+        Add-PodeSchedule -Name 'MemoryCleanup' -Cron '*/30 * * * *' -ScriptBlock {
+            try {
+                # Force garbage collection to free unused memory
+                [System.GC]::Collect()
+                [System.GC]::WaitForPendingFinalizers()
+                [System.GC]::Collect()  # Second pass for better cleanup
+                
+                # Simple log message
+                Write-Host "🧹 Automatic memory cleanup completed" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "⚠️ Memory cleanup error: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+        }
         
         # HTTP server is now fully configured and listening
         # Pode will automatically handle incoming requests without authentication

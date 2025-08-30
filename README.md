@@ -3,6 +3,8 @@
 # SimpleHTTPPodeApi
 A lightweight, secure HTTP API server built with PowerShell and the [Pode framework](https://github.com/Badgerati/Pode). Designed for monitoring, health checks, and simple API services with comprehensive logging capabilities.
 
+<img width="1935" height="1118" alt="image" src="https://github.com/user-attachments/assets/b23a6198-f6f2-4964-8704-4454a03e105c" />
+
 ## 🎯 Features
 
 - **Minimal & Fast**: Lightweight HTTP server with 5 concurrent threads for optimal performance
@@ -35,7 +37,6 @@ SimpleHTTPPodeApi/
     ├── requests-YYYY-MM-DD.log
     └── requests-structured-YYYY-MM-DD.log
 ```
-<img width="1935" height="1118" alt="image" src="https://github.com/user-attachments/assets/b23a6198-f6f2-4964-8704-4454a03e105c" />
 
 ## 🚀 Quick Start
 
